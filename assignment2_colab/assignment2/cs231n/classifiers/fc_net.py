@@ -74,7 +74,18 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # init first layer
+        self.params['W1'] = np.random.randn(input_dim,hidden_dims[0]) * weight_scale
+        self.params['b1'] = np.zeros(hidden_dims[0])
+
+        # init following n-2 layers
+        for i in range(len(hidden_dims) - 2):
+            self.params["W"+str(i+2)] = np.random.randn(hidden_dims[i+1],hidden_dims[i+2]) * weight_scale
+            self.params['b'+str(i+2)] = np.zeros(hidden_dims[i+2])
+
+        # init last layer
+        self.params['W'+str(len(hidden_dims)+1)] = np.random.randn(hidden_dims[-1],num_classes) * weight_scale
+        self.params['b'+str(len(hidden_dims)+1)] = np.zeros(num_classes)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -148,7 +159,7 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################

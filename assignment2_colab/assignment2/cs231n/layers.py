@@ -25,7 +25,9 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    x_flatten = x.reshape(x.shape[0],-1)
+
+    out = np.matmul(x_flatten,w) + b
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -57,7 +59,12 @@ def affine_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N,M = dout.shape
+
+    dx = np.matmul(dout,w.T).reshape(x.shape)
+    x_flatten = x.reshape(x.shape[0],-1)
+    dw = np.matmul(x_flatten.T,dout)
+    db = np.sum(dout,axis=0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -82,7 +89,7 @@ def relu_forward(x):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    out = x * (x>0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -108,7 +115,7 @@ def relu_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    dx = (x>0) * dout
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -137,7 +144,21 @@ def softmax_loss(x, y):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N,C = x.shape
+
+    loss = -np.sum(x[range(N),y])
+    exp_scores = np.exp(x)
+    loss += np.sum(np.log(np.sum(exp_scores,axis=1)))
+
+    loss /= N
+
+    cnt = np.zeros_like(x)
+    cnt[np.arange(N),y] = 1
+    exp_scores = exp_scores.T
+    exp_scores /= np.sum(exp_scores,axis=0)
+    dx = -cnt + (exp_scores / np.sum(exp_scores,axis=0)).T
+
+    dx /= N
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
