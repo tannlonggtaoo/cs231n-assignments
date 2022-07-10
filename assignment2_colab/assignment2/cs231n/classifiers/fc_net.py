@@ -79,13 +79,13 @@ class FullyConnectedNet(object):
         self.params['b1'] = np.zeros(hidden_dims[0])
 
         # init following n-2 layers
-        for i in range(len(hidden_dims) - 2):
-            self.params["W"+str(i+2)] = np.random.randn(hidden_dims[i+1],hidden_dims[i+2]) * weight_scale
-            self.params['b'+str(i+2)] = np.zeros(hidden_dims[i+2])
+        for i in range(2,self.num_layers):
+            self.params["W"+str(i)] = np.random.randn(hidden_dims[i-1],hidden_dims[i]) * weight_scale
+            self.params['b'+str(i)] = np.zeros(hidden_dims[i])
 
         # init last layer
-        self.params['W'+str(len(hidden_dims)+1)] = np.random.randn(hidden_dims[-1],num_classes) * weight_scale
-        self.params['b'+str(len(hidden_dims)+1)] = np.zeros(num_classes)
+        self.params['W'+str(self.num_layers)] = np.random.randn(hidden_dims[-1],num_classes) * weight_scale
+        self.params['b'+str(self.num_layers)] = np.zeros(num_classes)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -159,7 +159,14 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        
+        # dropout & BN not implemented
+        out_cache_relu = []
+        out_cache_affine = [affine_forward(X,self.params['W1'],self.params['b1'])]
+        for i in range(2,self.num_layers):
+            out_cache_relu.append(relu_forward(out_cache_affine[-1][0]))
+            out_cache_affine.append(affine_forward(out_cache_relu[-1][0],self.params['W'+str(i)],self.params['b'+str(i)]))
+        scores = out_cache_affine[-1][0]
+
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
