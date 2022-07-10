@@ -80,8 +80,8 @@ class FullyConnectedNet(object):
 
         # init following n-2 layers
         for i in range(2,self.num_layers):
-            self.params["W"+str(i)] = np.random.randn(hidden_dims[i-1],hidden_dims[i]) * weight_scale
-            self.params['b'+str(i)] = np.zeros(hidden_dims[i])
+            self.params["W"+str(i)] = np.random.randn(hidden_dims[i-2],hidden_dims[i-1]) * weight_scale
+            self.params['b'+str(i)] = np.zeros(hidden_dims[i-1])
 
         # init last layer
         self.params['W'+str(self.num_layers)] = np.random.randn(hidden_dims[-1],num_classes) * weight_scale
@@ -162,7 +162,7 @@ class FullyConnectedNet(object):
         # dropout & BN not implemented
         out_cache_relu = []
         out_cache_affine = [affine_forward(X,self.params['W1'],self.params['b1'])]
-        for i in range(2,self.num_layers):
+        for i in range(2,self.num_layers+1):
             out_cache_relu.append(relu_forward(out_cache_affine[-1][0]))
             out_cache_affine.append(affine_forward(out_cache_relu[-1][0],self.params['W'+str(i)],self.params['b'+str(i)]))
         scores = out_cache_affine[-1][0]
@@ -193,7 +193,20 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        loss, dscore = softmax_loss(scores,y)
+        regterm = 0
+        for i in range(1,self.num_layers+1):
+            regterm += np.sum(self.params['W'+str(i)]**2)
+        loss += self.reg * 0.5 * regterm
+
+        da, grads['W'+str(self.num_layers)], grads['b'+str(self.num_layers)] = affine_backward(dscore,out_cache_affine[-1][1])
+        
+        grads['W'+str(self.num_layers)] += self.reg * self.params['W'+str(self.num_layers)]
+
+        for i in reversed(range(1,self.num_layers)):
+            dx = relu_backward(da,out_cache_relu[i-1][1])
+            da, grads['W'+str(i)], grads['b'+str(i)] = affine_backward(dx, out_cache_affine[i-1][1])
+            grads['W'+str(i)] += self.reg * self.params['W'+str(i)]
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
