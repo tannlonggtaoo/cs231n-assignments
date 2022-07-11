@@ -58,6 +58,7 @@ def sgd_momentum(w, dw, config=None):
     """
     if config is None:
         config = {}
+    # The setdefault() method returns the value of the item with the specified key. If the key does not exist, insert the key, with the specified value.
     config.setdefault("learning_rate", 1e-2)
     config.setdefault("momentum", 0.9)
     v = config.get("velocity", np.zeros_like(w))
@@ -69,7 +70,9 @@ def sgd_momentum(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    v = config['momentum'] * v - config['learning_rate'] * dw
+    w += v
+    next_w = w
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
