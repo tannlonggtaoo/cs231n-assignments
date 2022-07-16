@@ -314,9 +314,6 @@ def batchnorm_backward(dout, cache):
     dmean = -np.sum(dx_norm, axis=0) / np.sqrt(var + eps)
     dx = (dx_norm / np.sqrt(var + eps)) + (2 * dvar * (x - mean) / N) + (dmean / N)
 
-    #inv_var = 1/np.sqrt(var+eps)
-    #dx = (1. / N) * inv_var * (N*dx_norm - np.sum(dx_norm, axis=0)
-		#- x_norm*np.sum(dx_norm*x_norm, axis=0))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -444,7 +441,7 @@ def layernorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    # only place to change: axis = 0 -> 1; reshape
+    # only place to change: axis = 0 -> 1; reshape; N -> D
     N, D = dout.shape
 
     x, x_norm, gamma, mean, var, eps = cache
@@ -453,7 +450,7 @@ def layernorm_backward(dout, cache):
     dgamma = np.sum(dout * x_norm, axis=0)
     dx_norm = dout * gamma
 
-    dx = (1 / (N * np.sqrt(var+eps))) * (N*dx_norm - np.sum(dx_norm, axis=1).reshape(-1,1)
+    dx = (1 / (D * np.sqrt(var+eps))) * (D*dx_norm - np.sum(dx_norm, axis=1).reshape(-1,1)
 		- x_norm*(np.sum(dx_norm*x_norm, axis=1).reshape(-1,1)))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
