@@ -1,4 +1,5 @@
 from builtins import range
+import itertools
 import numpy as np
 
 
@@ -586,7 +587,21 @@ def conv_forward_naive(x, w, b, conv_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = x.shape
+    F, _, HH, WW = w.shape
+    pad = conv_param['pad']
+    stride = conv_param['stride']
+    x_pad = np.pad(x,((0,0),(0,0),(pad,pad),(pad,pad)),'constant')
+    _,_,Hpad, Wpad = x_pad.shape
+    Hout = 1 + (H + 2 * pad - HH) // stride
+    Wout = 1 + (W + 2 * pad - WW) // stride
+    out = np.zeros(shape=(N,F,Hout,Wout))
+
+    
+    for i,j in itertools.product(range(0,Hpad-HH+1,stride),range(0,Wpad-WW+1,stride)):
+        x_pad_cut = x_pad[:,:,i:i+HH,j:j+WW]
+        for idx in range(N):
+          out[idx,:,i//stride,j//stride] = np.sum((x_pad_cut[idx] * w).reshape(F,-1), axis=-1) + b
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
