@@ -683,7 +683,17 @@ def max_pool_forward_naive(x, pool_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = x.shape
+    poolh = pool_param['pool_height']
+    poolw = pool_param['pool_width']
+    stride = pool_param['stride']
+    Hout = 1 + (H - poolh) // stride
+    Wout = 1 + (W - poolw) // stride
+    out = np.zeros(shape=(N,C,Hout,Wout))
+
+    
+    for i,j in itertools.product(range(0,H-poolh+1,stride),range(0,W-poolw+1,stride)):
+        out[:,:,i//stride,j//stride] = np.max(x[:,:,i:i+poolh,j:j+poolw].reshape(N,C,-1),axis=-1)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -709,7 +719,20 @@ def max_pool_backward_naive(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    x, pool_param = cache
+
+    N, C, H, W = x.shape
+    poolh = pool_param['pool_height']
+    poolw = pool_param['pool_width']
+    stride = pool_param['stride']
+
+    dx = np.zeros_like(x)
+
+    for i,j in itertools.product(range(0,H-poolh+1,stride),range(0,W-poolw+1,stride)):
+      dx_pool = np.zeros((N,C,poolh*poolw))
+      idxs = np.expand_dims(np.argmax(x[:,:,i:i+poolh,j:j+poolw].reshape(N,C,-1),axis=-1),axis=-1)
+      np.put_along_axis(dx_pool, idxs, np.expand_dims(dout[:,:,i//stride,j//stride],axis=-1),axis=-1)
+      dx[:,:,i:i+poolh,j:j+poolw] += dx_pool.reshape(N,C,poolh,poolw)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
