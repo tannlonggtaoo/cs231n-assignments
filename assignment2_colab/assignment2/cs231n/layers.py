@@ -773,7 +773,35 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    mode = bn_param['mode']
+    eps = bn_param.get("eps", 1e-5)
+    momentum = bn_param.get("momentum", 0.9)
+
+    N, C, H, W = x.shape
+
+    running_mean = bn_param.get("running_mean", np.zeros(C, dtype=x.dtype))
+    running_var = bn_param.get("running_var", np.zeros(C, dtype=x.dtype))
+
+    if mode == "train":
+
+      mean = np.mean(x,axis=(0,2,3))
+      var = np.var(x,axis=(0,2,3))
+      x_norm = (x - mean.reshape(1,C,1,1)) / (np.sqrt(var + eps).reshape(1,C,1,1))
+      out = gamma.reshape(1,C,1,1) * x_norm + beta.reshape(1,C,1,1)
+      cache = (x, x_norm, gamma, mean, var, eps)
+      running_mean = momentum * running_mean + (1 - momentum) * mean
+      running_var = momentum * running_var + (1 - momentum) * var
+
+    elif mode == "test":
+
+      x_norm = (x - running_mean.reshape(1,C,1,1)) / (np.sqrt(running_var + eps).reshape(1,C,1,1))
+      out = gamma.reshape(1,C,1,1) * x_norm + beta.reshape(1,C,1,1)
+
+    else:
+      raise ValueError('Invalid forward spatial batchnorm mode "%s"' % mode)
+
+    bn_param["running_mean"] = running_mean
+    bn_param["running_var"] = running_var
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -806,7 +834,16 @@ def spatial_batchnorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = dout.shape
+
+    x, x_norm, gamma, mean, var, eps = cache
+
+    dbeta = np.sum(dout, axis=(0,2,3))
+    dgamma = np.sum(dout * x_norm, axis=(0,2,3))
+    dx_norm = dout * gamma.reshape(1,C,1,1)
+
+    dx = (1 / (N*H*W * np.sqrt(var+eps)).reshape(1,C,1,1)) * (N*H*W*dx_norm - np.sum(dx_norm, axis=(0,2,3)).reshape(1,C,1,1)
+		- x_norm*np.sum(dx_norm*x_norm, axis=(0,2,3)).reshape(1,C,1,1))
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
