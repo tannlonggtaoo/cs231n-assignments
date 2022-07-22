@@ -34,7 +34,10 @@ def compute_saliency_maps(X, y, model):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    scores = model(X)
+    loss = torch.sum(scores.gather(1, y.view(-1, 1)))
+    loss.backward()
+    saliency,_ = torch.max(torch.abs(X.grad),dim=1)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
@@ -76,8 +79,20 @@ def make_fooling_image(X, target_y, model):
     ##############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    epoch = 0
+    scores = model(X_fooling)
+    while scores.argmax() != target_y:
+        epoch += 1
+        score = scores[0][target_y]
+        score.backward()
+        grad = X_fooling.grad
+        X_fooling = X_fooling.requires_grad_(False)
+        X_fooling += learning_rate * grad / torch.sqrt(torch.sum(grad**2))
+        X_fooling.grad = None
+        X_fooling = X_fooling.requires_grad_()
+        scores = model(X_fooling)
 
+    print(f"Total epoch : {epoch}")
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ##############################################################################
     #                             END OF YOUR CODE                               #
@@ -94,7 +109,15 @@ def class_visualization_update_step(img, model, target_y, l2_reg, learning_rate)
     ########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    img.grad = None
+    score = model(img)[0][target_y]
+    loss = score - l2_reg * torch.sum(img**2)
+    loss.backward()
+    grad = img.grad
+    img.grad = None
+    img.requires_grad_(False)
+    img += learning_rate * grad / torch.sqrt(torch.sum(grad**2))
+    img.requires_grad_(True)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ########################################################################
